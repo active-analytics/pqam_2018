@@ -1,0 +1,19 @@
+"0","df_strategy_comp %>%"
+"0","    group_by(strategy) %>%"
+"0","    summarize("
+"0","        total_pnl = sum(dly_pnl)"
+"0","        , ann_ret ="
+"0","            (((total_pnl + dbl_starting_aum) / dbl_starting_aum) ^"
+"0","                 (252 / int_trade_days)) - 1"
+"0","        , sharpe = (mean(dly_ret) / sd(dly_ret)) * sqrt(252)"
+"0","    )"
+"1","[38;5;246m# A tibble: 2 x 4[39m
+"
+"1","  strategy       total_pnl ann_ret sharpe
+"
+"1","  [3m[38;5;246m<chr>[39m[23m              [3m[38;5;246m<dbl>[39m[23m   [3m[38;5;246m<dbl>[39m[23m  [3m[38;5;246m<dbl>[39m[23m
+"
+"1","[38;5;250m1[39m option_selling  1[4m1[24m[4m3[24m[4m2[24m013.  0.163   1.38 
+"
+"1","[38;5;250m2[39m spy              [4m4[24m[4m5[24m[4m3[24m515.  0.077[4m4[24m  0.687
+"

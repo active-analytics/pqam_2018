@@ -1,0 +1,166 @@
+---
+title: "Selling SPY Weeklys: 2014 - 2018"
+subtitle: "Strangles vs Puts"
+author: "Pritam Dalal"
+date: "February 7, 2019"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(lubridate)
+```
+
+
+
+```{r, read_data, include=FALSE}
+df_managed_pnl <- 
+    read_csv("../data_output/spy_weekly_managed_pnl_10_300_5yr.csv")
+```
+
+
+
+```{r, calc_daily_pnl, include=FALSE}
+df_daily_pnl <-
+    df_managed_pnl %>% 
+        filter(strategy %in% c("put", "strangle")) %>% 
+        group_by(strategy, data_date) %>% 
+        summarize(
+            dly_pnl = sum(scaled_managed_pnl)
+        ) %>% 
+        mutate(
+            ttd_pnl = cumsum(dly_pnl)
+        )
+```
+
+
+
+
+&nbsp;  
+
+The purpose of this analysis is to compare the strategies of selling puts and selling strangles.
+
+Both strategies will utilize the following risk-management:
+
+1. 10% threshold delta-hedging
+
+1. 300% loss-trigger position unwinds.
+
+
+My conclusion is that the strategies are similar, but selling strangles has a a higher Sharpe-Ratio, so I recommend sticking with strangle selling.
+
+&nbsp;
+
+
+
+#### Overall Peformance
+The two strategies had nearly identical performance from the point of view of  pnl/return.  However, selling puts had greater variability and thus a significantly lower Sharpe-Ratio.
+
+
+```{r, overall_performance, echo=FALSE}
+df_daily_pnl %>% 
+    group_by(strategy) %>% 
+    summarize(
+        total_pnl = sum(dly_pnl) %>% round(2)
+        , stdev_pnl = (sd(dly_pnl) * sqrt(252)) %>% round(2)
+        , sharpe = ((mean(dly_pnl) / sd(dly_pnl)) * sqrt(252)) %>% round(2)
+    )
+```
+
+
+&nbsp;
+
+#### Visualizing Cumulative Performance
+
+The performance of the two strategies can be contrasted by observing the cumulative performance graph:
+
+```{r, ttd_pnl_graph, echo=FALSE}
+
+df_daily_pnl %>% 
+    ggplot(aes(x = data_date, y = ttd_pnl, color = strategy)) +
+    geom_line() +
+    labs(
+        title = "Cumulative Performance"
+        , subtitle = "strangles vs puts"
+        , x = "trade date"
+        , y = "ttd pnl"
+    )
+```
+
+
+The selling of puts has greater variability.  In particular, the draw-down in early 2018 is more significant for puts than for strangles.
+
+
+&nbsp;
+
+#### Performance by Year
+
+It is instructive to analyze performance of each strategy by year.  Although there are certain years in which puts outperform strangles both in terms of returns and Sharpe, overall strangles is a better strategy.
+
+
+&nbsp;
+```{r, performanc_by_year, echo=FALSE}
+df_performance_by_year <-
+    df_daily_pnl %>%
+        mutate(year = year(data_date)) %>%
+        group_by(strategy, year) %>%
+        summarize(
+            pnl = sum(dly_pnl)
+            , sharpe = (mean(dly_pnl) / sd(dly_pnl)) * sqrt(252)
+        )
+
+# pnl by year
+df_performance_by_year %>%
+    filter(year > 2013) %>%
+    ggplot(aes(factor(year), pnl, fill = strategy)) +
+        geom_bar(stat = "identity", position = "dodge") +
+        labs(
+            title = "PNL by Year"
+            , subtitle = "strangles vs puts"
+            , x = "trade date"
+            , y = "annual pnl"
+        )
+
+# pnl by year
+df_performance_by_year %>%
+    filter(year > 2013) %>%
+    ggplot(aes(factor(year), sharpe, fill = strategy)) +
+        geom_bar(stat = "identity", position = "dodge") +
+        labs(
+            title = "Sharpe by Year"
+            , subtitle = "strangles vs puts"
+            , x = "trade date"
+            , y = "annual sharpe"
+        )
+```
+
+
+
+&nbsp;
+
+#### Conclusion & Recommendation
+
+Due to superior risk-adjusted performance, my recommendation is to focus on strangles rather than puts.  All of my subsequent analysis will be on selling strangles only.
+
+
+
+
+
+
+

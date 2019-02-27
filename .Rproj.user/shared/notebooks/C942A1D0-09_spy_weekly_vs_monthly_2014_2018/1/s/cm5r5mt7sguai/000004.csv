@@ -1,0 +1,81 @@
+"0","# monthly premium"
+"0","df_scaling_monthly %>% "
+"0","    group_by(variation) %>% "
+"0","    summarize("
+"0","        prem_sold = sum(strangle_prem_sold)"
+"0","    ) %>%"
+"0","    mutate("
+"0","        tenor = ""monthly"""
+"0","    )"
+"1","[38;5;246m# A tibble: 3 x 3[39m
+"
+"1","  variation prem_sold tenor  
+"
+"1","      [3m[38;5;246m<dbl>[39m[23m     [3m[38;5;246m<dbl>[39m[23m [3m[38;5;246m<chr>[39m[23m  
+"
+"1","[38;5;250m1[39m       0.1      61.9 monthly
+"
+"1","[38;5;250m2[39m       0.3      62.6 monthly
+"
+"1","[38;5;250m3[39m       0.5      62.7 monthly
+"
+"0","# weekly premium"
+"0","df_scaling_weekly %>% "
+"0","    group_by(variation) %>% "
+"0","    summarize("
+"0","        prem_sold = sum(strangle_prem_sold)"
+"0","    ) %>%"
+"0","    mutate("
+"0","        tenor = ""weekly"""
+"0","    )"
+"1","[38;5;246m# A tibble: 3 x 3[39m
+"
+"1","  variation prem_sold tenor 
+"
+"1","      [3m[38;5;246m<dbl>[39m[23m     [3m[38;5;246m<dbl>[39m[23m [3m[38;5;246m<chr>[39m[23m 
+"
+"1","[38;5;250m1[39m       0.1      60.7 weekly
+"
+"1","[38;5;250m2[39m       0.3      62.2 weekly
+"
+"1","[38;5;250m3[39m       0.5      62.4 weekly
+"
+"0","# monthly pnl"
+"0","df_pnl_monthly %>% "
+"0","    group_by(variation) %>% "
+"0","    summarize("
+"0","        pnl = sum(scaled_dly_tot_pnl)"
+"0","    ) %>%"
+"0","    mutate("
+"0","        tenor = ""monthly"""
+"0","    )"
+"1","[38;5;246m# A tibble: 3 x 3[39m
+"
+"1","  variation   pnl tenor  
+"
+"1","      [3m[38;5;246m<dbl>[39m[23m [3m[38;5;246m<dbl>[39m[23m [3m[38;5;246m<chr>[39m[23m  
+"
+"1","[38;5;250m1[39m       0.1 16.2  monthly
+"
+"1","[38;5;250m2[39m       0.3  3.40 monthly
+"
+"1","[38;5;250m3[39m       0.5  2.64 monthly
+"
+"0","# weekly PNl"
+"0","df_pnl_weekly %>% "
+"0","    group_by(delta = variation) %>% "
+"0","    summarize("
+"0","        pnl = sum(scaled_dly_tot_pnl)"
+"0","    )"
+"1","[38;5;246m# A tibble: 3 x 2[39m
+"
+"1","  delta   pnl
+"
+"1","  [3m[38;5;246m<dbl>[39m[23m [3m[38;5;246m<dbl>[39m[23m
+"
+"1","[38;5;250m1[39m   0.1 17.0 
+"
+"1","[38;5;250m2[39m   0.3  5.11
+"
+"1","[38;5;250m3[39m   0.5  3.22
+"

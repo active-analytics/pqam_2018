@@ -1,0 +1,277 @@
+---
+title: "Selling SPY Volatility"
+subtitle: "Weekly vs Monthly Options"
+author: "Pritam Dalal"
+date: "February 18, 2019"
+output: 
+  html_document:
+    theme: simplex
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(bizdays)
+load_rmetrics_calendars(2000:2020)
+bizdays.options$set(default.calendar="Rmetrics/NYSE")
+```
+
+```{r, read_data, include=FALSE}
+df_pnl_weekly_all <- 
+    read_csv("../data_output/spy_weekly_2014_2018_pnl_scaled.csv")
+
+df_pnl_monthly_all <- 
+    read_csv("../data_output/spy_monthly_2014_2018_pnl_scaled.csv")
+
+df_scaling_weekly_all <-
+    read_csv("../data_output/spy_weekly_2014_2018_position_scaling.csv")
+
+df_scaling_monthly_all <-
+    read_csv("../data_output/spy_monthly_2014_2018_position_scaling.csv")
+
+```
+
+```{r, removing_unneeded_data, include=FALSE}
+# removing the data
+df_pnl_weekly <- 
+    df_pnl_weekly_all %>% 
+        filter(expiration <= "2018-12-21") %>% 
+        filter(strategy == "strangle")
+
+df_pnl_monthly <- 
+    df_pnl_monthly_all %>% 
+        filter(strategy == "strangle")
+
+df_scaling_weekly <- 
+    df_scaling_weekly_all %>% 
+        filter(expiration <= "2018-12-21")
+
+df_scaling_monthly <- 
+    df_scaling_monthly_all %>% 
+        filter(expiration <= "2018-12-21")
+```
+
+
+```{r, premium_check, include=FALSE}
+
+# monthly premium
+df_scaling_monthly %>% 
+    group_by(variation) %>% 
+    summarize(
+        prem_sold = sum(strangle_prem_sold)
+    ) %>%
+    mutate(
+        tenor = "monthly"
+    )
+
+# weekly premium
+df_scaling_weekly %>% 
+    group_by(variation) %>% 
+    summarize(
+        prem_sold = sum(strangle_prem_sold)
+    ) %>%
+    mutate(
+        tenor = "weekly"
+    )
+
+# monthly pnl
+df_pnl_monthly %>% 
+    group_by(variation) %>% 
+    summarize(
+        pnl = sum(scaled_dly_tot_pnl)
+    ) %>%
+    mutate(
+        tenor = "monthly"
+    )
+
+# weekly PNl
+df_pnl_weekly %>% 
+    group_by(delta = variation) %>% 
+    summarize(
+        pnl = sum(scaled_dly_tot_pnl)
+    )
+```
+
+
+```{r, dates_check, include=FALSE}
+# checking that the dates match up
+df_pnl_monthly$data_date %>% summary()
+df_pnl_weekly$data_date %>% summary()
+
+
+```
+
+
+&nbsp; 
+
+
+The purpose of this analysis is to explore the systematic selling of SPY options during the years of 2014 through 2018.  In particular, we compare the performance of selling weekly and monthly expirations.  For each tenor, we sell strangles at three different deltas - 10%, 30%, 50% - to determine the effect of strike selection on performance.
+
+Conclusions: 
+
+1. Weekly options outperform monthly options.
+
+1. For a given tenor, selling out-of-the-money options outperforms selling at-the-money options.
+
+
+&nbsp; 
+
+#### Backtesting Parameters
+
+**Dates:** 12/20/2013 - 12/21/2018 (1260 total trading days)
+
+**Underlying:** SPY
+
+**Weekly:** on each Friday, sell strangles that expire the following Friday.
+
+**Monthly:** on each regular option expiration (3rd Friday of the month), sell strangles that expire on the next regular expiration.
+
+**Hedging:** the positions are delta-hedged daily and are held to expiration.
+
+
+For both tenors, the first trades open on 12/20/2013 and the last trades close on 12/21/2018.  The monthly strategy is executed on 60 consecutive regular expirations, while the weekly strategy is executed over 261 consecutive weekly expirations.
+
+Positions are sized such that irrespective of strike and tenor, the same amount of premium is sold each month.
+
+&nbsp; 
+
+#### Sharpe-Ratio by Tenor and Delta
+
+In this section we consider the Sharpe-ratios for each tenor/strike combination. It's easy to see that the weeklys out perform the monthlys and that 10%-delta perform the best in both tenors.  I have seen both patterns in various volatility contexts before.
+
+```{r, sharpe_ratio_by_delta, fig.width=7, fig.asp=0.65, fig.align="center"}
+df_sharpe_monthly <-
+    df_pnl_monthly %>% 
+        group_by(variation, data_date) %>% 
+        summarize(dly_pnl = sum(scaled_dly_tot_pnl)) %>% 
+        group_by(variation) %>% 
+        summarize(
+            sharpe_ratio = (mean(dly_pnl) / sd(dly_pnl)) * sqrt(252)
+        ) %>% 
+        mutate(
+            tenor = "monthly"
+        ) %>% 
+        select(tenor, delta=variation,sharpe_ratio)
+
+df_sharpe_weekly <- 
+    df_pnl_weekly %>% 
+        group_by(variation, data_date) %>% 
+        summarize(dly_pnl = sum(scaled_dly_tot_pnl)) %>% 
+        group_by(variation) %>% 
+        summarize(
+            sharpe_ratio = (mean(dly_pnl) / sd(dly_pnl)) * sqrt(252)
+        ) %>% 
+        mutate(
+            tenor = "weekly"
+        ) %>% 
+        select(tenor, delta=variation,sharpe_ratio)
+
+df_sharpe <- bind_rows(df_sharpe_monthly, df_sharpe_weekly)
+
+df_sharpe %>% 
+    ggplot(aes(x = factor(delta), y = sharpe_ratio, fill=tenor)) +
+    geom_bar(stat = "identity")  +
+    geom_text(aes(label=round(sharpe_ratio, 2), vjust=-0.25)) + 
+    facet_wrap(~tenor, nrow = 1) +
+    labs(
+        title = "Sharpe-Ratio by Delta"
+        , subtitle = "Monthy vs Weekly"
+        , x = "delta"
+        , y = "sharpe-ratio"
+
+    )
+```
+
+&nbsp;
+
+#### Visualizing Cumulative Performance of 10%-Delta Strangles
+Since 10%-delta has the highest Sharpe-Ratio for both tenors, we restrict ourselves to those strikes in this section. By examining the cumulative performance graph of the two tenors, we can see they are similar in terms of average returns, but the monthly strategy has greater variability.  Both tenors suffered significant losses in early 2018.
+
+
+The actual PNL numbers aren't particularly meaningful because they are essentially calculated at a per-option level, and they don't take into account the effect of compound growth, i.e. increasing position sizes with as gains accumulate.  I give an estimate of returns in the final section.
+
+```{r, cumulative_performance}
+df_ttd_monthly <-
+    df_pnl_monthly %>% 
+        filter(variation == 0.1) %>% 
+        group_by(variation, data_date) %>% 
+        summarize(dly_pnl = sum(scaled_dly_tot_pnl)) %>% 
+        mutate(
+            ttd_pnl = cumsum(dly_pnl)
+            , tenor = "monthly"
+        ) 
+
+df_ttd_weekly <-
+    df_pnl_weekly %>% 
+        filter(variation == 0.1) %>% 
+        group_by(variation, data_date) %>% 
+        summarize(dly_pnl = sum(scaled_dly_tot_pnl)) %>% 
+        mutate(
+            ttd_pnl = cumsum(dly_pnl)
+            , tenor = "weekly"
+        ) 
+
+df_ttd <- bind_rows(df_ttd_monthly, df_ttd_weekly)
+
+# cummulative performance
+df_ttd %>%
+    ggplot() +
+    geom_line(aes(x = data_date, y = ttd_pnl, color = tenor)) +
+    labs(
+        title = "Cumulative Performance - SPY 10%-Delta Strangles"
+        , subtitle = "Monthly vs Weekly"
+        , x = "trade date"
+        , y = "ttd pnl"
+    )
+
+
+```
+
+
+&nbsp;
+
+#### Concluding Remarks
+My estimate is that once option commissions and compounded growth have been accounted for, both tenors would have returned about 13% annually.  The Sharpe for weeklys would be about 1.00, and the that of monthlys would be about 0.50.  
+
+
+Feel free to contact me with questions (pritamdalal@hotmail.com, 206.802.5525).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

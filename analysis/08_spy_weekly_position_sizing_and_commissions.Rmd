@@ -1,0 +1,274 @@
+---
+title: "Selling SPY Weeklys: 2014 - 2018"
+subtitle: "Position Size and Commissions"
+author: "Pritam Dalal"
+date: "February 9, 2019"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+```
+
+```{r, read_datat, include=FALSE}
+df_aum_exp <- 
+    read_csv("../data_output/spy_weekly_2014_2018_aum_by_expiration.csv")
+
+df_aum_daily <- 
+    read_csv("../data_output/spy_weekly_2014_2018_aum_daily.csv")
+
+df_strategy_comp <-
+    read_csv("../data_output/spy_weekly_2014_2018_strategy_comparison.csv")
+
+dbl_starting_aum <- 1000000
+int_trade_days <- 1264
+```
+
+
+
+In our previous analyses, we have largely ignored the practical realities of position sizing and commissions.  In this, analysis we address these details in order to arrive at strategy characteristics such as number of options traded per expiration, annualized returns after commission, etc.
+
+Here is the option-selling strategy that we will be analyzing:
+
+1. Backtest Period: 12/20/2013 - 12/28/2018 (1,264 trading days)
+
+1. Each week, on Monday morning, we will sell a 10-delta strangle in the nearest SPY weekly contract.
+
+1. Positions will be delta-hedged with a threshold of 10%.
+
+1. Once the ttd-pnl of a strangle position reaches 300% of premium sold, the position will be closed out by buying back the strangle.
+
+1. If the PNL of the previous week was greater than 200% of premium sold, we will not trade that week.
+
+1. AUM: $1,000,000
+
+
+
+Under fairly conservative assumptions, after commissions, this strategy yields annualized returns of 16.3% and a Sharpe Ratio of 1.38, and compares favorably to passive strategy of buying the market.
+
+&nbsp;
+
+
+#### Capital Usage in Option Selling
+
+Capital usage in the trading of derivatives such as options and futures is a difficult topic.  After years of working in options I am still trying to wrap my mind around the matter.  Most of my options experience has come while working for a large financial institution, and thus I was largely sheilded from having to overtly think about capital usage.  For a small and active option trading entity, these considerations will be of critical importance.
+
+It is possible to closely analyze the marginning policy of a broker and then back into what the margin requirement would be for a particular set of positions.  This is a useful exercise, but it's also extremely time consuming to do accurately.
+
+I think a much more useful task it to actually start putting on a trading strategy, at a small scale, and see what the capital requirements are.  Not only will this teach you about capital usage, but along the way you will learn a great deal about the realities of executing your strategy.  Even after having worked in options for over five years, I learned a lot by opening up a retail account and putting on trade.
+
+&nbsp;
+
+#### ODS Option Trading in 2018
+
+
+Throughout 2018, I engaged in naked option selling in my retail Tastyworks account.  The purpose of this account was to start trading at a small scale.  It taught me a huge amount about trading in general and my experience has served as a benchmark for this SPY weekly analysis.
+
+Here are some specifics of the my trading results:
+
+1. Dates: 3/16/2018 - 12/21/2018 (195 trading days)
+
+1. Starting AUM: $10,000 
+
+1. Each month sell naked 10-delta strangles on 10 underlyings.
+
+1. I unwound losing positions somewhat intuitively, but usually when the delta was over 50%.
+
+1. Total Premium Sold: $1,568 - this amounts to selling 0.08 cents per dollar of AUM, each trading day. 
+
+1. Total Options Sold: 184
+
+1. Commissions & Fees: $211
+
+1. PNL (including Commissions and Fees): $686
+
+1. Annualize Returns: 9%
+
+1. Sharpe-Ratio: 1.23
+
+&nbsp;
+
+#### AUM and Position Sizes
+
+As mentioned above, determining capital usage for a given sent of options trade is a non-trivial task.  The approach I took in this analysis was to assume that Parallax would be able to run position sizes that are three times as large those that ODS ran during 2018.  I believe this is a fair estimate for several reasons.  First, Parallax will be working on a professional platform, and thus marginning will be more aggressive.  Second, Parallax will be actively delta-hedging which will reduce risk.  Third, I could probably be running slighly larger positions, but I'm still getting comfortable with the trades that I'm putting on.
+
+
+1. Total Premium: \$4,757,905
+
+1. Total Options Sold: 297,612
+
+1. Avg Opts Per Expiration: 1,135
+
+1. Avg Notional Per Expiration: $26 million
+
+1. Total PNL: \$1,132,013
+
+Notice that the portion of premium retained for the SPY weekly strategy was 24%.  For ODS in 2018, 44% of premium was retained.  I also checked the SPY weekly strategy during the ODS trading window only, and the percent of profit retained was 15%.
+
+When you go to implement this strategy in futures, there will be a lot of difference is qunatities because of different contract sizes and pricing convention.  However, the average notional per expiration $26 MM should be the same - this quantity will scale proportionately, so if you're only investing \$100K, the avg notional will be \$2.6MM.
+
+
+&nbsp;
+
+#### Commissions
+I am assuming commissions of \$1 per options trade.  For a professional broker, this is quite high, but I'm not assuming any commissions for delta-hedging, or for closing trades.  I'm also not assuming any additional fees.  So, I feel comforatble leaving a fairly conservative commissions estimate here (and of course conservative cost estimates leave room in your analysis for a pleasant surprise).
+
+
+Overall, the strategy pays \$297K in commissions, which is 6% of total premium.  This was far more efficient than ODS 2018, which gave away 13% of its premium in commission.  This difference makes sense.  In my trading, I focus on low priced underlyings (less than \$50) because my account size is so small.  SPY contracts are much bigger, because SPY usually trades well over \$200. You have to sell fewer SPY options to generate a similar amount of premium. Commissions are charged per option, irrespective of underlying price. 
+
+&nbsp;
+
+#### Option Selling vs Long SPY
+As a means of further exploring our option selling strategy, we compare it to the same sized position in SPY.  During the backtest period, the overall performance of option-selling is far superior:
+
+
+```{r, overall_performance}
+df_strategy_comp %>%
+    group_by(strategy) %>%
+    summarize(
+        total_pnl = sum(dly_pnl)
+        , ann_ret =
+            (((total_pnl + dbl_starting_aum) / dbl_starting_aum) ^
+                 (252 / int_trade_days)) - 1
+        , sharpe = (mean(dly_ret) / sd(dly_ret)) * sqrt(252)
+    )
+```
+
+
+The superior performance can be easily observed in the cumulative performance graph:
+
+```{r, cumulative_performance}
+# cummulative performance
+df_strategy_comp %>%
+    ggplot() +
+    geom_line(aes(x = trade_date, y = eod_aum, color = strategy)) +
+    labs(
+        title = "Cumulative Performance"
+        , subtitle = "option-selling vs spy: 2014-2018"
+        , x = "trade date"
+        , y = "aum"
+    )
+```
+
+The only real relative weakness of option selling is in terms of max draw down.  The largest drawdown for option-selling was 16%, starting from November 2017 and extending to April 2018.  The largest drawdown for SPY was from September 2018 to December 2018.  Neither one of the strategies had fully recovered from these drawdowns by the end of the backtest.
+
+
+Let's look at performance by year:
+
+```{r, annual_performance, fig.width=6, fig.asp=0.5}
+# return by year
+df_strategy_comp %>%
+    filter(trade_date >= "2014-01-01") %>%
+    mutate(
+        year = lubridate::year(trade_date)
+    ) %>%
+    group_by(strategy, year) %>%
+    summarize(
+        annual_return = prod(1 + dly_ret) - 1
+    ) %>%
+    ungroup() %>%
+    ggplot(aes(factor(year), annual_return, fill = strategy)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "Annual Returns"
+        , x = "year"
+        , y = "return"
+
+    )
+
+
+# sharpe by year
+df_strategy_comp %>%
+    filter(trade_date >= "2014-01-01") %>%
+    mutate(
+        year = lubridate::year(trade_date)
+    ) %>%
+    group_by(strategy, year) %>%
+    summarize(
+        sharpe_ratio = (mean(dly_ret) / sd(dly_ret)) * sqrt(252)
+    ) %>%
+    ungroup() %>%
+    ggplot(aes(factor(year), sharpe_ratio, fill = strategy)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(
+        title = "Annual Sharpe-Ratio"
+        , x = "year"
+        , y = "sharpe-ratio"
+
+    )
+```
+
+And finally, let's look at the monthly returns of option-selling alone:
+```{r, montly_ret, fig.width=6, fig.asp=2, fig.align="center"}
+# return by month
+df_strategy_comp %>%
+    filter(trade_date >= "2014-01-01") %>%
+    filter(strategy == "option_selling") %>%
+    mutate(
+        year = lubridate::year(trade_date)
+        , month = lubridate::month(trade_date)
+    ) %>%
+    group_by(strategy, year, month) %>%
+    summarize(
+        monthly_return = prod(1 + dly_ret) - 1
+    ) %>%
+    ungroup() %>%
+    ggplot(aes(factor(month), monthly_return, fill = strategy)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    facet_wrap(~year, nrow = 5) +
+    labs(
+        title = "Monthly Returns"
+        , x = "month"
+        , y = "return"
+
+    )
+```
+
+In addition to the large drawdown, one issue that institutional investors may have with the strategy is the lack of consistency.  There are lots of negative months.
+
+&nbsp;
+
+#### Conclusions and Recommendations
+This looks like a very promising strategy.  I believe there is more than enough analysis to support putting on the trade. The next step is implementation.  The greatest challenge in doing that will be automating the delta-hedging and unwind mechanisms.
+
+&nbsp;
+
+#### Appendix
+In the backtest, we assumed that we well 0.25 cents of premium per dollar of AUM each day.  Here is a how returns vary depending on the degree of position size leveraging (of course Sharpe stays fixed at 1.38):
+
+```{r, vary_position_sizing}
+df_size <-
+    tibble(
+        size = c(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35)
+        , returns = c(0.0315, 0.636, 0.0962, 0.1293, 0.1629, 0.1969, 0.2314)
+    )
+df_size
+```
+
+
+
+
+
+
+
+
+
+
+
+

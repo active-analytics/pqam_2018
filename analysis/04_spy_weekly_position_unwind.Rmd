@@ -1,0 +1,207 @@
+---
+title: "Selling SPY Weeklys: 2014 - 2018"
+subtitle: "When To Unwind Positions"
+author: "Pritam Dalal"
+date: "February 4, 2019"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(gridExtra)
+```
+
+
+
+```{r, read_data, include=FALSE}
+chr_path <- "../data_output/df_portfolio_unwind_by_pnl_loss_portfolio.csv"
+df_portfolio <- 
+    read_csv(chr_path)
+```
+
+
+&nbsp;
+
+In our initial 5-year backtest of selling SPY weeklys, we assumed that we would hold positions to maturity.  In this analysis, we consider adding a position unwind mechanism. 
+
+The mechanism operates at the expiration level as follows:
+
+1. We choose a threshold, call it $t$.  
+
+2. For a given expiration, let $p$ be the premium sold for that expiration.  When the trade-to-date losses for that expiration exceed $t * p$, we unwind the positions.
+
+In this analysis, we consider thresholds ranging from 10% to 1000% (10x loss).  As you might imagine, a 10x loss threshold is the same as having no unwind policy, i.e. holding all positions until maturity.
+
+We restrict this analysis to the daily delta-hedging strategy.
+
+
+```{r, calculating_metrics, include=FALSE}
+# calculating the scaled, managed PNLs
+df_portfolio <-
+    df_portfolio %>%
+    mutate(
+        managed_naked = strangle_mult * dly_opt_pnl * manage_mult_naked
+        , managed_dh = strangle_mult * dly_tot_pnl * manage_mult_dh
+    )
+
+# aggregating pnls by day so we can calculate Sharpe-Ratio
+df_daily_pnl <-
+    df_portfolio %>%
+    group_by(threshold, data_date) %>%
+    summarize(
+        dly_managed_naked = sum(managed_naked)
+        , dly_managed_dh = sum(managed_dh)
+    )
+
+
+# naked options
+df_metrics_naked <-
+    df_daily_pnl %>%
+    group_by(threshold) %>%
+    summarize(
+        avg_ann = (mean(dly_managed_naked) * 252) %>% round(2)
+        , std_ann = (sd(dly_managed_naked) * sqrt(252)) %>% round(2)
+        , sharpe =
+            ((mean(dly_managed_naked) / sd(dly_managed_naked)) * sqrt(252)) %>% round(2)
+        
+    )
+
+
+# delta-hedged options
+df_metrics_dh <-
+    df_daily_pnl %>%
+    group_by(threshold) %>%
+    summarize(
+        avg_ann = (mean(dly_managed_dh) * 252) %>% round(2)
+        , std_ann = (sd(dly_managed_dh) * sqrt(252)) %>% round(2)
+        , sharpe =
+            ((mean(dly_managed_dh) / sd(dly_managed_dh)) * sqrt(252)) %>% round(2)
+        
+    )
+
+```
+
+
+
+&nbsp;
+
+#### Visualizing Performance as a Function of Threshold
+
+In this section we calculate three key performance metrics for loss threshold levels ranging from 10% to 1000%.  The three metrics we consider are:
+
+1. annualized average PNL (the numerator of the Sharpe-Ratio)
+
+1. annualized standard deviation of PNL (the denominator of the Sharpe-Ratio)
+
+1. Sharpe-Ratio.
+
+The graphs of each are given below, followed by a few words of commentary:
+```{r, plot_metrics_vs_threshold, echo=FALSE}
+
+plt_avg_ann <-
+    df_metrics_dh %>%
+        ggplot(aes(x=threshold, y=avg_ann)) +
+        geom_point() +
+        geom_smooth(method = 'loess', formula = 'y ~ x', se = FALSE) +
+        scale_x_continuous(labels = scales::percent) +
+        ggtitle("Average PNL")
+
+plt_std_ann<-
+    df_metrics_dh %>%
+        ggplot(aes(x=threshold, y=std_ann)) +
+        geom_point() +
+        geom_smooth(method = 'loess', formula = 'y ~ x', se = FALSE) +
+        scale_x_continuous(labels = scales::percent) +
+        ggtitle("Standard Deviation of PNL")
+
+
+plt_sharpe <-
+    df_metrics_dh %>%
+        ggplot(aes(x=threshold, y=sharpe)) +
+        geom_point() +
+        geom_smooth(method = 'loess', formula = 'y ~ x', se = FALSE) +
+        scale_x_continuous(labels = scales::percent) +
+        ggtitle("Sharpe-Ratio")
+
+
+
+gridExtra::grid.arrange(plt_avg_ann, plt_std_ann, plt_sharpe, ncol=2)
+```
+
+1. Average PNL - a threshold of less than 125% seems to significantly depress returns.
+
+2. Standard Deviation - there is a pop in variability around 125%, but this effect levels off around 250%
+
+3. The Sharpe-Ratio ratio graph has a sweet-spot for a threshold in the range of 110%-135%.
+
+&nbsp;
+
+#### Dual Scatter Plots
+
+In this section we look at the two scatter plots, each with a wrinkle.  Both scatter plots graph the average annual PNL against the annual standard deviation of the pnl - one pair for corresponding to each threshold. However, instead of simply plotting a dot, we instead plot the threshold amount (left graph) and the Sharpe-Ratio (right graph).  This allows us to include three dimensions of data on a 2-D plot.
+
+Because of how the axes of the graphs are laid out, the highest Sharpe-Ratios are in the bottom right, and the lowest Sharpe-Ratios are in the upper left.
+```{r, dual_scatter_plots, echo=FALSE}
+plt_thresh <-
+    df_metrics_dh %>%
+    ggplot(aes(x=avg_ann, y=std_ann, label = factor(threshold))) +
+    geom_text(check_overlap = TRUE, size=3) +
+    ggtitle("Threshold")
+
+
+# plt_thresh <-
+#     df_metrics_dh %>%
+#     ggplot(aes(x=avg_ann, y=std_ann, label = factor(paste0(as.character(df_metrics_dh$threshold * 100),"%")))) +
+#     geom_text(check_overlap = TRUE, size=2) +
+#     ggtitle("Threshold")
+
+
+plt_sharpe <-
+    df_metrics_dh %>%
+    ggplot(aes(x=avg_ann, y=std_ann, label = factor(sharpe))) +
+    geom_text(check_overlap = TRUE, size=3) +
+    ggtitle("Sharpe-Ratio")
+
+gridExtra::grid.arrange(plt_thresh, plt_sharpe, nrow=1)
+```
+
+
+
+Based on these two graphs, it seems that a threshold of 100%-130% has the highest Sharpe-Ratios.  This mirrors the *sweet spot* we observed in the previous section.
+
+&nbsp;
+
+#### Conclusion & Recommendation
+Based on this analysis, under a daily delta-hedging regiment, I would recommend unwinding positions when losses reach around 125% of premiums sold.
+
+It will be interesting to combine this unwind strategy with the threshold delta-hedging approach, to see if there is an optimal combination of delta-hedging threshold and position unwind threshold.
+
+I will work on the combined analysis next.
+
+
+
+
+
+
+
+
+
+
+
+

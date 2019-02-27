@@ -1,0 +1,24 @@
+"0","df_signal_comparison <- "
+"0","    df_sitout_comparison %>% "
+"0","        bind_rows("
+"0","            df_garch_comparison %>% filter(signal == ""forecast"")"
+"0","        )"
+"0","df_signal_comparison %>%"
+"0","    group_by(signal) %>%"
+"0","    summarize("
+"0","        total_pnl = sum(daily) %>% round(2)"
+"0","        , stdev_pnl = (sd(daily) * sqrt(252)) %>% round(2)"
+"0","        , sharpe = ((mean(daily) / sd(daily)) * sqrt(252)) %>% round(2)"
+"0","    )"
+"1","[38;5;246m# A tibble: 3 x 4[39m
+"
+"1","  signal   total_pnl stdev_pnl sharpe
+"
+"1","  [3m[38;5;246m<chr>[39m[23m        [3m[38;5;246m<dbl>[39m[23m     [3m[38;5;246m<dbl>[39m[23m  [3m[38;5;246m<dbl>[39m[23m
+"
+"1","[38;5;250m1[39m base          16.2      2.59   1.25
+"
+"1","[38;5;250m2[39m forecast      15.4      2.57   1.19
+"
+"1","[38;5;250m3[39m sitout        18.7      2.19   1.71
+"

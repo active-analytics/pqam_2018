@@ -1,0 +1,17 @@
+"0","df_daily_pnl %>% "
+"0","    group_by(strategy) %>% "
+"0","    summarize("
+"0","        total_pnl = sum(dly_pnl) %>% round(2)"
+"0","        , stdev_pnl = sd(dly_pnl) * sqrt(252) %>% round(2)"
+"0","        , sharpe = (mean(dly_pnl) / sd(dly_pnl)) * sqrt(252) %>% round(2)"
+"0","    )"
+"1","[38;5;246m# A tibble: 2 x 4[39m
+"
+"1","  strategy total_pnl stdev_pnl sharpe
+"
+"1","  [3m[38;5;246m<chr>[39m[23m        [3m[38;5;246m<dbl>[39m[23m     [3m[38;5;246m<dbl>[39m[23m  [3m[38;5;246m<dbl>[39m[23m
+"
+"1","[38;5;250m1[39m put           16.0      3.26  0.976
+"
+"1","[38;5;250m2[39m strangle      16.2      2.59  1.25 
+"

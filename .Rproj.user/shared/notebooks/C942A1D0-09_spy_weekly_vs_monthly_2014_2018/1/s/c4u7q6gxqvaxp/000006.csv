@@ -1,0 +1,74 @@
+"0","df_pnl_weekly_all <- "
+"0","    read_csv(""../data_output/spy_weekly_2014_2018_pnl_scaled.csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  underlying_symbol = [31mcol_character()[39m,
+  type = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  data_date = [34mcol_date(format = """")[39m,
+  strategy = [31mcol_character()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","df_pnl_monthly_all <- "
+"0","    read_csv(""../data_output/spy_monthly_2014_2018_pnl_scaled.csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  underlying_symbol = [31mcol_character()[39m,
+  type = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  data_date = [34mcol_date(format = """")[39m,
+  strategy = [31mcol_character()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","df_scaling_weekly_all <-"
+"0","    read_csv(""../data_output/spy_weekly_2014_2018_position_scaling.csv"")"
+"2","Parsed with column specification:
+cols(
+  variation = [32mcol_double()[39m,
+  underlying = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  execution = [34mcol_date(format = """")[39m,
+  d2x = [32mcol_double()[39m,
+  bid.put = [32mcol_double()[39m,
+  ask.put = [32mcol_double()[39m,
+  mid.put = [32mcol_double()[39m,
+  bid.call = [32mcol_double()[39m,
+  ask.call = [32mcol_double()[39m,
+  mid.call = [32mcol_double()[39m,
+  strangle_mult = [32mcol_double()[39m,
+  strangle_prem_sold = [32mcol_double()[39m,
+  put_mult = [32mcol_double()[39m,
+  put_prem_sold = [32mcol_double()[39m,
+  call_mult = [32mcol_double()[39m,
+  call_prem_sold = [32mcol_double()[39m
+)
+"
+"0","df_scaling_monthly_all <-"
+"0","    read_csv(""../data_output/spy_monthly_2014_2018_position_scaling.csv"")"
+"2","Parsed with column specification:
+cols(
+  variation = [32mcol_double()[39m,
+  underlying = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  execution = [34mcol_date(format = """")[39m,
+  d2x = [32mcol_double()[39m,
+  bid.put = [32mcol_double()[39m,
+  ask.put = [32mcol_double()[39m,
+  mid.put = [32mcol_double()[39m,
+  bid.call = [32mcol_double()[39m,
+  ask.call = [32mcol_double()[39m,
+  mid.call = [32mcol_double()[39m,
+  strangle_mult = [32mcol_double()[39m,
+  strangle_prem_sold = [32mcol_double()[39m,
+  put_mult = [32mcol_double()[39m,
+  put_prem_sold = [32mcol_double()[39m,
+  call_mult = [32mcol_double()[39m,
+  call_prem_sold = [32mcol_double()[39m
+)
+"

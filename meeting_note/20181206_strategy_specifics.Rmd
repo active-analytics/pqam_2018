@@ -1,0 +1,91 @@
+---
+title: "20181206 Meeting Notes - Strategy Specificss"
+author: "Pritam Dalal"
+date: "December 6, 2018"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Meeting Objective
+
+The purpose of this phone call was to discuss the specifics of the strategy that we are going to backtest.  These are the approximate strategy parameters that we wanted to flush out in more detail(from Leigh's e-mail):
+
+- Identify Local minima/ maxima of SPY (use 2-day RSI and VIX)
+- Use GARCH (1,1) to determine Buy/Sell weekly 5 delta options on Monday or Tuesday prior to expiration (2 std deviation options) with bias toward selling (20,000 contracts per million) or 40% margin to equity
+- Hedge when loss is -.5% of NAV using underlying Neutralize delta and gamma risk when portfolio hits 3% draw down
+-  Liquidate positions when portfolio hits 10% draw down
+- Sell puts at local bottom, sell calls at local top, sell strangles during range bound
+- There is a distinct draw down limit per position.
+- Hedges by selling/buying SPY futures and buying puts/calls.
+
+
+#### Notes from Meeting
+
+
+1. Trades will be executed on Monday or Tuesday of each week, and will expire that Friday.  So positions (that are not unwound) will be on for 3 to 5 day at a time.  If execution occurs on Monday first thing in the morning, then the positions will be on for 5 days.  If execution occurs just before the close on Tuesday, the positions will be on for 3 days.
+
+
+1. We will use 2-day RSI and VIX to determine the quantile of the current price level of SPY.  We will use this information to decide what kind of options to sell.  To give a concrete example, here is a simplified decision mechanism:
+    - 10th percentile (local minimum) - sell puts
+    - 50th percentile (nearly average) - sell strangles
+    - 90th percentile (local maximum) - sell calls
+
+\vspace{10pt} 
+
+3. The default action will be to sell options each week.  However, prior to execution, we will compare implied volatility to forcasted volatility, to determine action.  The action that is ultimately take may be one of the following: sell, no-action, buy.
+    - implied measures: atm-vol, vol at some other delta, variance swap rate.
+    - focasting methods: GARCH(1, 1)
+
+\vspace{10pt} 
+
+4. Position Sizing is something we still have a lot of questions about.  To answer these questions definitively, we need to understand the exact margining policy of whatever broker we will be using.  However, there is a useful heuristic worth consider.  The total premium you sell over the course of a year is your maximum possible profit.  Based on a target of returns, and an estimate of what portion of premium/max-profit will be retained, we can estimate how much premium needs to be sold per execution.  In Pritam's experience of naively selling strangles, he comfortably sold about 1.5% of AUM in premium each month, and retained around 2/3 of it.  It seems reasonable that in a more sophisticated strategy, with portfolio marigning, we could sell 2% of AUM per month and retain 75% of it.
+
+
+1. Hedging and Managing Losers - we still have a lot of questions about this topic.  Leigh is going to call Global Sigma and try to find out more details. 
+    - delta-hedging will be a form of risk management, where the trigger to hedge is a loss of 0.5% of AUM
+    - losses of greater than 3% of AUM will prompt more severe action, including option buying: either the strikes that were originally sold (partial undwind), or other strikes (gamma neutralizing).
+    - at a 10% loss of AUM, all positions will be unwound.
+    
+    
+#### Homework
+
+- Leigh: 
+    - call Global Sigma and find out more about their stop loss strategies
+    - work on RSI/VIX indicator of underlying price quantile (local minima/maxima)
+    
+    
+- Pritam:
+    - everything else
+
+
+
+
+
+    
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

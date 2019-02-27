@@ -1,0 +1,13 @@
+"0","df_managed_pnl <- "
+"0","    read_csv(""../data_output/spy_weekly_managed_pnl_10_300_5yr.csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  strategy = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  data_date = [34mcol_date(format = """")[39m,
+  breach = [33mcol_logical()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"

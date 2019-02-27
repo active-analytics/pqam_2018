@@ -1,0 +1,15 @@
+"0","# loading packages"
+"0","library(tidyverse)"
+"0","library(bizdays)"
+"0","load_rmetrics_calendars(2000:2020)"
+"2","Calendar Rmetrics/LONDON loaded
+"
+"2","Calendar Rmetrics/NERC loaded
+"
+"2","Calendar Rmetrics/NYSE loaded
+"
+"2","Calendar Rmetrics/TSX loaded
+"
+"2","Calendar Rmetrics/ZURICH loaded
+"
+"0","bizdays.options$set(default.calendar=""Rmetrics/NYSE"")"

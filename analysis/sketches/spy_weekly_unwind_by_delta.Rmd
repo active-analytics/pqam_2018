@@ -1,0 +1,175 @@
+---
+title: "Selling SPY Weeklys: 2014 - 2018"
+subtitle: "Threshold Delta-Hedging"
+author: "Pritam Dalal"
+date: "February 2, 2018"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(gridExtra)
+```
+
+
+
+```{r, read_data, include=FALSE}
+chr_path <- "../data_output/df_portfolio_unwind_by_delta_portfolio.csv"
+df_portfolio <- 
+    read_csv(chr_path)
+```
+
+
+
+
+```{r, calculating_metrics, include=FALSE}
+##################
+## ANALSYS CODE ##
+##################
+# calculating the scaled, managed PNLs
+df_portfolio <-
+    df_portfolio %>%
+        mutate(
+            managed_naked = strangle_mult * dly_opt_pnl * manage_mult
+            , managed_dh = strangle_mult * dly_tot_pnl * manage_mult
+        )
+
+# aggregating pnls by day so we can calculate Sharpe-Ratio
+df_daily_pnl <-
+    df_portfolio %>%
+        group_by(threshold, data_date) %>%
+        summarize(
+            dly_managed_naked = sum(managed_naked)
+            , dly_managed_dh = sum(managed_dh)
+        )
+
+
+
+#########################
+## calculating metrics ##
+#########################
+## 1) annualized mean of daily pnl
+## 2) annualized standard-deviation of daily pnl
+## 3) annualized sharpe-ratio
+
+# naked options
+df_metrics_naked <-
+    df_daily_pnl %>%
+        group_by(threshold) %>%
+        summarize(
+            avg_ann = (mean(dly_managed_naked) * 252) %>% round(2)
+            , std_ann = (sd(dly_managed_naked) * sqrt(252)) %>% round(2)
+            , sharpe =
+                ((mean(dly_managed_naked) / sd(dly_managed_naked)) * sqrt(252)) %>% round(2)
+    
+        )
+
+
+# delta-hedged options
+df_metrics_dh <-
+    df_daily_pnl %>%
+    group_by(threshold) %>%
+    summarize(
+        avg_ann = (mean(dly_managed_dh) * 252) %>% round(2)
+        , std_ann = (sd(dly_managed_dh) * sqrt(252)) %>% round(2)
+        , sharpe =
+            ((mean(dly_managed_dh) / sd(dly_managed_dh)) * sqrt(252)) %>% round(2)
+        
+    )
+
+```
+
+
+
+```{r}
+
+plt_avg_ann <- 
+    df_metrics_naked %>%
+        ggplot(aes(x=threshold, y=avg_ann)) +
+        geom_point() +
+        geom_smooth(se = FALSE)
+
+plt_std_ann <- 
+    df_metrics_naked %>%
+        ggplot(aes(x=threshold, y=std_ann)) +
+        geom_point() +
+        geom_smooth(se = FALSE)
+
+
+plt_sharpe <-
+    df_metrics_naked %>%
+        ggplot(aes(x=threshold, y=sharpe)) +
+        geom_point() +
+        geom_smooth(se = FALSE)
+
+
+plt_sharpe <-
+    df_metrics_naked %>%
+        ggplot(aes(x=threshold, y=sharpe)) +
+        geom_point() +
+        geom_smooth(se = FALSE)
+
+gridExtra::grid.arrange(plt_avg_ann, plt_std_ann, plt_sharpe, ncol=2)
+```
+
+
+
+
+```{r}
+plt_thresh <-
+    df_metrics_naked %>%
+        ggplot(aes(x=avg_ann, y=std_ann, label = factor(threshold))) +
+        #geom_point() +
+        geom_text(check_overlap = TRUE, size=3, nudge_y = 0.05)
+
+plt_sharpe <-
+    df_metrics_naked %>%
+        ggplot(aes(x=avg_ann, y=std_ann, label = factor(sharpe))) +
+        #geom_point() +
+        geom_text(check_overlap = TRUE, size=3, nudge_x = 0.1)
+
+gridExtra::grid.arrange(plt_thresh, plt_sharpe, nrow=1)
+```
+
+
+```{r}
+mean(c(0.53, 0.51, 0.48, 0.47, 0.43, 0.38, 0.36))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,41 @@
+"0","df_aum_exp <- "
+"0","    read_csv(""../data_output/spy_weekly_2014_2018_aum_by_expiration.csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  underlying = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  execution = [34mcol_date(format = """")[39m,
+  sitout = [33mcol_logical()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","df_aum_daily <- "
+"0","    read_csv(""../data_output/spy_weekly_2014_2018_aum_daily.csv"")"
+"2","Parsed with column specification:
+cols(
+  data_date = [34mcol_date(format = """")[39m,
+  aum_pnl_sitout = [32mcol_double()[39m,
+  aum_ttd_pnl = [32mcol_double()[39m,
+  eod_aum = [32mcol_double()[39m,
+  dly_ret = [32mcol_double()[39m,
+  drawdown = [32mcol_double()[39m
+)
+"
+"0","df_strategy_comp <-"
+"0","    read_csv(""../data_output/spy_weekly_2014_2018_strategy_comparison.csv"")"
+"2","Parsed with column specification:
+cols(
+  strategy = [31mcol_character()[39m,
+  trade_date = [34mcol_date(format = """")[39m,
+  close = [32mcol_double()[39m,
+  adjusted = [32mcol_double()[39m,
+  dly_ret = [32mcol_double()[39m,
+  dly_pnl = [32mcol_double()[39m,
+  ttd_pnl = [32mcol_double()[39m,
+  eod_aum = [32mcol_double()[39m
+)
+"
+"0","dbl_starting_aum <- 1000000"
+"0","int_trade_days <- 1264"

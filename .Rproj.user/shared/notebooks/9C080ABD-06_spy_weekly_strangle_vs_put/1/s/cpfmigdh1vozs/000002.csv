@@ -1,0 +1,3 @@
+"0","df_daily_pnl %>% "
+"0","    ggplot(aes(x = data_date, y = ttd_pnl, color = strategy)) +"
+"0","    geom_line()"

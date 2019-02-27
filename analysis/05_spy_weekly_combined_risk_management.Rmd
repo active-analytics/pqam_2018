@@ -1,0 +1,146 @@
+---
+title: "Selling SPY Weeklys: 2014 - 2018"
+subtitle: "Combining Risk Management Strategies"
+author: "Pritam Dalal"
+date: "February 4, 2019"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+    body .main-container {
+        max-width: 700px;
+    }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(gridExtra)
+```
+
+
+
+```{r, read_data, include=FALSE}
+chr_path <- "../data_output/combined_risk_management_metric.csv"
+df_metric <-
+    read_csv(chr_path)
+```
+
+
+&nbsp;  
+
+In two previous analyses, we explored two different risk management strategies to employ while selling weekly SPY options:
+
+1. threshold delta-hedging
+
+1. unwinding positions when a certain loss-trigger is hit
+
+When considered in isolation, the optimal threshold for delta-hedging is in the 35%-50% range.  When daily delta-hedging, the optimal loss-trigger level for unwinding positions is around 125% of premium sold (max profits). 
+
+In this analysis, we combine these two risk management strategies to see if there is an optimal combination of delta-hedging threshold and loss-trigger percentage.
+
+
+&nbsp;
+
+#### Sharpe Ratio Heat Map
+
+The data is most easily visualized with a heat map of Sharpe-Ratios associated with each comination of delta-hedge threshold and loss-trigger.  We consder thresholds ranging from 0% to 100% in increments of 1%.  We consider loss triggers ranging from 10% to 300% in increments of 10%. 
+
+The delta-hedge thresholds vary along the x-axis, increasing from left to right. The loss-trigger levels vary along the y-axis, increasing from bottom to top.
+
+```{r, heat_map_sharpe, echo=FALSE}
+
+df_metric %>% 
+    ggplot(aes(dh_threshold, loss_trigger, label = sharpe)) +
+    geom_raster(aes(fill = sharpe), interpolate = TRUE)  +
+    geom_text(check_overlap = FALSE, size=2) + 
+    ggtitle("Sharpe-Ratio")
+```
+
+
+**Observations**
+
+1. The left-most vertical strip of the heat map represents daily delta-hedging for various loss-trigger levels.  The right-most vertical strip represents naked option selling for various loss-trigger levels.
+
+1. The loss-trigger level has far less impact on daily delta-hedging than it does on naked option selling.  This makes sense.  Daily delta-hedging already provides a lot of risk management benefits, so overlaying an unwind strategy doesn't add that much.
+
+1. We have enough data that I buy the overall trends, but we don't have enough data for me to believe some of the details.  For example, for infrequent delta-hedging (threshold: 50%-100%) there is a big drop off in Sharpe-Ratio from a loss trigger of 2.1 to 2.2.  The Sharpe decreases from about 1.53 to 1.08.  I suspect this is just an artifact of the market path: by increasing the trigger from 2.1 to 2.2, we just happen expose ourselves to big losses for one particular expiration.
+
+
+1. The overall trend that I see - most visible in the cases of infrequent hedging - is that both low loss-triggers and high loss-triggers lead to poor Sharpe-Ratios.  This makes sense.  If the loss-trigger is too low, you prematurely unwind trades the will end up being profitable.  If the loss-trigger is too high, you expose yourself to large losses due to big moves in the underlying. 
+
+&nbsp;
+
+#### Conclusion
+
+To my eye, for infrequent delta-hedging, say thresholds greater that 35%, there is a compelling case to be made for unwinding positions when losses reach about 150%-200% of max profit.  
+
+For delta-hedging that's more frequent, it's hard to say that unwinding positions results in that much performance improvement.  However, it is still prudent to have such a policy, as it makes strong intuitive sense and it doesn't seem to *hurt* performance.  Under frequent delta-hedging, thresholds less than 35%, I would suggest a loss trigger between 100%-150% of max profit.
+
+
+
+
+```{r, dual_scatter_plots, echo=FALSE}
+# plt_thresh <-
+#     df_metrics_dh %>%
+#     ggplot(aes(x=avg_ann, y=std_ann, label = factor(threshold))) +
+#     geom_text(check_overlap = TRUE, size=3) +
+#     ggtitle("Threshold")
+
+
+# plt_thresh <-
+#     df_metrics_dh %>%
+#     ggplot(aes(x=avg_ann, y=std_ann, label = factor(paste0(as.character(df_metrics_dh$threshold * 100),"%")))) +
+#     geom_text(check_overlap = TRUE, size=2) +
+#     ggtitle("Threshold")
+
+
+# plt_sharpe <-
+#     df_metrics_dh %>%
+#     ggplot(aes(x=avg_ann, y=std_ann, label = factor(sharpe))) +
+#     geom_text(check_overlap = TRUE, size=3) +
+#     ggtitle("Sharpe-Ratio")
+# 
+# gridExtra::grid.arrange(plt_thresh, plt_sharpe, nrow=1)
+```
+
+
+&nbsp;
+
+#### Appendix: Additional Heat Maps
+
+Here are the heat maps for the annualized PNL (denominator of Sharpe) and the annualized standard deviation (numerator of Sharpe).
+
+```{r, heat_map_appendix, echo=FALSE}
+
+df_metric %>% 
+    ggplot(aes(dh_threshold, loss_trigger, label = avg_ann)) +
+    geom_raster(aes(fill = avg_ann), interpolate = TRUE)  +
+    geom_text(check_overlap = FALSE, size=2) + 
+    ggtitle("Annualized Average Daily PNL")
+
+
+df_metric %>% 
+    ggplot(aes(dh_threshold, loss_trigger, label = std_ann)) +
+    geom_raster(aes(fill = std_ann), interpolate = TRUE)  +
+    geom_text(check_overlap = FALSE, size=2) + 
+    ggtitle("Annualized Standard Deviation of Daily PNL")
+```
+
+
+
+
+
+
+
+
+

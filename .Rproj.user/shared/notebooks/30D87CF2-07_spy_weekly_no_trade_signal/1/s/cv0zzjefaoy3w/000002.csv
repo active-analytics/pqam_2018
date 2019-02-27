@@ -1,0 +1,43 @@
+"0","df_managed_pnl <- "
+"0","    read_csv(""../data_output/spy_weekly_managed_pnl_10_300_5yr.csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  strategy = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  data_date = [34mcol_date(format = """")[39m,
+  breach = [33mcol_logical()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","df_chain_hist <- "
+"0","    read_csv(""../data_output/spy_weekly_chain_hist_garch_5yr.csv"")"
+"2","Parsed with column specification:
+cols(
+  underlying = [31mcol_character()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  trade_date = [34mcol_date(format = """")[39m,
+  last_trade_date = [34mcol_date(format = """")[39m,
+  implied_forward = [32mcol_double()[39m,
+  bid_swap_rate = [32mcol_double()[39m,
+  ask_swap_rate = [32mcol_double()[39m,
+  mid_swap_rate = [32mcol_double()[39m,
+  d2x = [32mcol_double()[39m,
+  garch_forecast = [32mcol_double()[39m
+)
+"
+"0","df_chain_desc <-"
+"0","    read_csv(""../data_output/spy_weekly_chain_desc_5yr.csv"")"
+"2","Parsed with column specification:
+cols(
+  underlying = [31mcol_character()[39m,
+  monthly = [33mcol_logical()[39m,
+  expiration = [34mcol_date(format = """")[39m,
+  last_trade_date = [34mcol_date(format = """")[39m,
+  execution = [34mcol_date(format = """")[39m,
+  d2x = [32mcol_double()[39m,
+  num_opts = [32mcol_double()[39m,
+  exec_day_volume = [32mcol_double()[39m
+)
+"
